@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const dist = path.resolve(__dirname, '..', 'dist');
 const isCI = !!process.env.CI;
+const extensionId = 'pkbnnhgoipfohgecjkjecbjhbmfihkcn';
 
 test('Extensão fecha todas abas normais exceto a atual via popup', async () => {
   const context = await chromium.launchPersistentContext('', {
@@ -13,6 +14,7 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
     ]
   });
 
+  // Cria três abas normais
   const page1 = await context.newPage();
   await page1.goto('https://example.com/1');
   const page2 = await context.newPage();
@@ -20,16 +22,6 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
   const page3 = await context.newPage();
   await page3.goto('https://example.com/3');
   await page2.bringToFront();
-
-  const targets = [...context.backgroundPages(), ...context.serviceWorkers()];
-  let extensionId = '';
-  for (const t of targets) {
-    if (t.url().startsWith('chrome-extension://')) {
-      extensionId = t.url().split('/')[2];
-      break;
-    }
-  }
-  if (!extensionId) throw new Error('Não foi possível encontrar o ID da extensão no contexto!');
 
   const popupUrl = `chrome-extension://${extensionId}/src/popup/popup.html`;
   const popupPage = await context.newPage();
@@ -49,7 +41,7 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
 
   expect(
     urlsRestantes.length === 1 &&
-    urlsRestantes[0].startsWith('chrome-extension://')
+    urlsRestantes[0].startsWith(`chrome-extension://${extensionId}`)
   ).toBe(true);
 
   await context.close();
