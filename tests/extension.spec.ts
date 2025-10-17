@@ -14,7 +14,6 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
     ]
   });
 
-  // Cria três abas normais
   const page1 = await context.newPage();
   await page1.goto('https://example.com/1');
   const page2 = await context.newPage();
@@ -28,20 +27,20 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
   await popupPage.goto(popupUrl);
   await popupPage.click('#close-tabs');
 
-  let tentativas = 0;
-  let pagesRestantes = context.pages();
-  while (pagesRestantes.length > 1 && tentativas < 10) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    pagesRestantes = context.pages();
-    tentativas++;
+  let attempts = 0;
+  let pagesRemaining = context.pages();
+  while (pagesRemaining.length > 1 && attempts < 10) {
+    await new Promise(r => setTimeout(r, 500));
+    pagesRemaining = context.pages();
+    attempts++;
   }
 
-  const urlsRestantes = pagesRestantes.map(p => p.url());
-  console.log("URLs restantes depois do clique:", urlsRestantes);
+  const urlsRemaining = pagesRemaining.map(p => p.url());
+  console.log("URLs restantes depois do clique:", urlsRemaining);
 
   expect(
-    urlsRestantes.length === 1 &&
-    urlsRestantes[0].startsWith(`chrome-extension://${extensionId}`)
+    urlsRemaining.length === 1 &&
+    urlsRemaining[0].startsWith(`chrome-extension://${extensionId}`)
   ).toBe(true);
 
   await context.close();
