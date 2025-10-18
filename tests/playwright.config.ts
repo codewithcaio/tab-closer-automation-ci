@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
-import * as path from 'node:path';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.join(__dirname, '..', 'dist');
 
 export default defineConfig({

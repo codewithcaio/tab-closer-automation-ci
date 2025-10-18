@@ -16,7 +16,7 @@ jobs:
           node-version: '20'
       - name: Instalar dependências
         run: npm ci
-      - name: Instalar Playwright
+      - name: Instalar navegadores Playwright
         run: npx playwright install --with-deps chromium
       - name: Build da extensão
         run: npm run build
@@ -28,7 +28,7 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report
-      - name: Publicar pacote da extensão
+      - name: Publicar extensão ZIP
         uses: actions/upload-artifact@v4
         with:
           name: extension-zip
