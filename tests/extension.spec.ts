@@ -5,7 +5,7 @@ const dist = path.resolve(__dirname, '..', 'dist');
 
 test('Extensão fecha todas abas normais exceto a atual via popup', async () => {
   const context = await chromium.launchPersistentContext('', {
-    headless: false,
+    headless: true,
     args: [
       `--disable-extensions-except=${dist}`,
       `--load-extension=${dist}`
