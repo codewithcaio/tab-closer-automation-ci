@@ -6,8 +6,11 @@ const dist = path.resolve(__dirname, '..', 'dist');
 const userDataDir = path.join(os.tmpdir(), 'playwright_userdata');
 
 test('Extensão fecha todas abas normais exceto a atual via popup', async () => {
+  // Detecta se está rodando em ambiente CI
+  const isCI = !!process.env.CI;
+
   const context = await chromium.launchPersistentContext(userDataDir, {
-    headless: false, // precisa de false para extensões
+    headless: isCI ? true : false, // CI => headless, local => visível
     args: [
       `--disable-extensions-except=${dist}`,
       `--load-extension=${dist}`,
@@ -34,6 +37,7 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
       break;
     }
   }
+
   if (!extensionId) throw new Error('Não foi possível encontrar o ID da extensão no contexto!');
 
   const popupUrl = `chrome-extension://${extensionId}/src/popup/popup.html`;
