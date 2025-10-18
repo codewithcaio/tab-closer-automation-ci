@@ -5,10 +5,12 @@ const dist = path.resolve(__dirname, '..', 'dist');
 
 test('Extensão fecha todas abas normais exceto a atual via popup', async () => {
   const context = await chromium.launchPersistentContext('', {
-    headless: true,
+    headless: false,
     args: [
       `--disable-extensions-except=${dist}`,
-      `--load-extension=${dist}`
+      `--load-extension=${dist}`,
+      '--no-sandbox',
+      '--disable-setuid-sandbox'
     ]
   });
 
@@ -20,6 +22,9 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
   const page3 = await context.newPage();
   await page3.goto('https://example.com/3');
   await page2.bringToFront();
+
+  // Dá um tempo para o background/service worker da extensão iniciar
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   // Descobre o extensionId via backgroundPages/serviceWorkers
   const targets = [...context.backgroundPages(), ...context.serviceWorkers()];
