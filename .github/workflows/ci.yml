@@ -9,25 +9,33 @@ on:
 jobs:
   test-build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Instalar dependências
         run: npm ci
+
       - name: Instalar Playwright browsers
         run: npx playwright install --with-deps chromium
+
       - name: Build da extensão
         run: npm run build
+
       - name: Testes E2E
         run: xvfb-run -a npm run test:e2e || xvfb-run -a npm run test:e2e -- --reporter=html
+
       - name: Publicar relatório Playwright
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report
+
       - name: Publicar pacote da extensão
         uses: actions/upload-artifact@v4
         with:

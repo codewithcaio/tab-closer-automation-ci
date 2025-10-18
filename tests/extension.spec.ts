@@ -1,13 +1,16 @@
 import { test, expect, chromium } from '@playwright/test';
+import path from 'node:path';
+import os from 'os';
 
-const EXTENSION_ID = 'pkbnnhgoipfohgecjkjecbjhbmfihkcn'; // seu ID fixo da extensão
+const dist = path.resolve(__dirname, '..', 'dist');
+const userDataDir = path.join(os.tmpdir(), 'playwright_userdata');
 
 test('Extensão fecha todas abas normais exceto a atual via popup', async () => {
-  const context = await chromium.launchPersistentContext('', {
-    headless: false, // precisa ser false para testar extensão
+  const context = await chromium.launchPersistentContext(userDataDir, {
+    headless: false, // precisa de false para extensões
     args: [
-      `--disable-extensions-except=dist`,
-      `--load-extension=dist`,
+      `--disable-extensions-except=${dist}`,
+      `--load-extension=${dist}`,
       '--no-sandbox',
       '--disable-setuid-sandbox'
     ]
@@ -22,8 +25,18 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
   await page3.goto('https://example.com/3');
   await page2.bringToFront();
 
-  // Abre o popup da extensão usando EXTENSION_ID fixo
-  const popupUrl = `chrome-extension://${EXTENSION_ID}/src/popup/popup.html`;
+  // Descobre o extensionId via backgroundPages/serviceWorkers
+  const targets = [...context.backgroundPages(), ...context.serviceWorkers()];
+  let extensionId = '';
+  for (const t of targets) {
+    if (t.url().startsWith('chrome-extension://')) {
+      extensionId = t.url().split('/')[2];
+      break;
+    }
+  }
+  if (!extensionId) throw new Error('Não foi possível encontrar o ID da extensão no contexto!');
+
+  const popupUrl = `chrome-extension://${extensionId}/src/popup/popup.html`;
   const popupPage = await context.newPage();
   await popupPage.goto(popupUrl);
   await popupPage.click('#close-tabs');
@@ -37,11 +50,10 @@ test('Extensão fecha todas abas normais exceto a atual via popup', async () => 
     tentativas++;
   }
 
-  // Mostra no terminal para debug
+  // Considera sucesso se só sobrou o popup
   const urlsRestantes = pagesRestantes.map(p => p.url());
   console.log("URLs restantes depois do clique:", urlsRestantes);
 
-  // Considera sucesso se só sobrou o popup
   expect(
     urlsRestantes.length === 1 &&
     urlsRestantes[0].startsWith('chrome-extension://')
